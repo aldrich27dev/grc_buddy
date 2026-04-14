@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  /* GRC Official Palette */
+  --color-grc-red: #da291c;
+  --color-grc-blue: #004a99;
+  
+  /* Semantic Colors for Dark Mode Transitions */
+  --color-app-bg: white;
+  --color-card-bg: white;
+  --color-main-text: #1e293b;
+}
+
+/* Dark Mode Variables */
+@variant dark (&:where(.dark, .dark *));
+
+.dark {
+  --color-app-bg: #0f172a;
+  --color-card-bg: #1e293b;
+  --color-main-text: #f1f5f9;
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--color-app-bg)] text-[var(--color-main-text)] transition-colors duration-300;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* Smooth scrolling for chat messages */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #da291c transparent;
+}
+
+:root {
+  --color-app-bg: #ffffff; /* Light mode background */
+  --color-card-bg: #ffffff;
+  --color-main-text: #1e293b;
+}
+
+.dark {
+  --color-app-bg: #0f172a; /* Deep dark background to match your screenshot */
+  --color-card-bg: #1e293b; /* Slightly lighter for the chat box */
+  --color-main-text: #f8fafc;
+}
+
+body {
+  background-color: var(--color-app-bg);
+  transition: background-color 0.3s ease;
+} 
+
+/* Update your chat messages container class */
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  /* This pushes the content to the bottom */
+  justify-content: flex-end; 
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Ensure the individual bubbles don't stretch */
+.message-wrapper {
+  display: flex;
+  width: 100%;
+  margin-bottom: 10px;
+}
