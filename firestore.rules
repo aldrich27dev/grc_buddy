@@ -1,0 +1,150 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function validProfile(profile) {
+      return profile != null
+        && profile.uid == request.auth.uid
+        && profile.name is string
+        && profile.name.size() > 0
+        && profile.name.size() <= 24
+        && profile.course is string
+        && profile.course.size() <= 40
+        && profile.year is string
+        && profile.year.size() <= 20
+        && profile.gender is string
+        && profile.gender.size() <= 20
+        && profile.location is string
+        && profile.location.size() <= 40;
+    }
+
+    function isParticipant(room) {
+      return signedIn()
+        && room != null
+        && (
+          room.user1.uid == request.auth.uid
+          || (room.user2 != null && room.user2.uid == request.auth.uid)
+        );
+    }
+
+    function isRoomParticipant(roomId) {
+      return get(/databases/$(database)/documents/rooms/$(roomId)) != null
+        && isParticipant(get(/databases/$(database)/documents/rooms/$(roomId)).data);
+    }
+
+    match /rooms/{roomId} {
+      // Waiting rooms are visible to signed-in students so they can be matched.
+      // Once a room is full, only its two participants can read it.
+      allow read: if signedIn() && (
+        resource == null
+        || resource.data.status == 'waiting'
+        || isParticipant(resource.data)
+      );
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'user1', 'interests', 'user2Interests', 'user2', 'status',
+          'typing1', 'typing2', 'createdAt', 'expiresAt', 'lastSeen1', 'endedBy'
+        ])
+        && request.resource.data.status == 'waiting'
+        && request.resource.data.user2 == null
+        && validProfile(request.resource.data.user1)
+        && request.resource.data.interests is list
+        && request.resource.data.interests.size() > 0
+        && request.resource.data.interests.size() <= 5
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt <= request.time + duration.value(15, 'm');
+
+      allow update: if signedIn() && (
+        // The waiting student keeps their room alive.
+        (
+          resource.data.status == 'waiting'
+          && resource.data.user1.uid == request.auth.uid
+          && request.resource.data.status == 'waiting'
+          && request.resource.data.user1 == resource.data.user1
+          && request.resource.data.user2 == null
+          && request.resource.data.expiresAt <= request.time + duration.value(15, 'm')
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['expiresAt', 'lastSeen1', 'typing1'])
+        )
+        ||
+        // A second student atomically claims the waiting room.
+        (
+          resource.data.status == 'waiting'
+          && resource.data.user2 == null
+          && resource.data.user1.uid != request.auth.uid
+          && request.resource.data.status == 'full'
+          && request.resource.data.user1 == resource.data.user1
+          && request.resource.data.interests == resource.data.interests
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.user2 != null
+          && request.resource.data.user2.uid == request.auth.uid
+          && validProfile(request.resource.data.user2)
+          && request.resource.data.user2Interests is list
+          && request.resource.data.user2Interests.size() <= 5
+          && request.resource.data.expiresAt <= request.time + duration.value(48, 'h')
+          && resource.data.expiresAt > request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'user2', 'user2Interests', 'status', 'matchedAt', 'expiresAt',
+            'typing1', 'typing2', 'lastSeen1', 'lastSeen2'
+          ])
+        )
+        ||
+        // Participants can update presence, typing, and end the conversation.
+        (
+          isParticipant(resource.data)
+          && request.resource.data.user1 == resource.data.user1
+          && request.resource.data.user2 == resource.data.user2
+          && (
+            request.resource.data.status == resource.data.status
+            || (resource.data.status == 'full' && request.resource.data.status == 'ended')
+          )
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'endedBy', 'endedAt', 'expiresAt',
+            'typing1', 'typing2', 'lastSeen1', 'lastSeen2'
+          ])
+        )
+      );
+
+      allow delete: if signedIn()
+        && resource.data.status == 'waiting'
+        && resource.data.user1.uid == request.auth.uid;
+
+      match /messages/{messageId} {
+        allow read: if isRoomParticipant(roomId);
+
+        allow create: if isRoomParticipant(roomId)
+          && request.resource.data.keys().hasOnly([
+            'text', 'senderId', 'senderName', 'course', 'createdAt',
+            'reaction', 'seen', 'replyTo', 'expiresAt'
+          ])
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.senderName is string
+          && request.resource.data.senderName.size() <= 24
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 1000
+          && request.resource.data.seen == false
+          && request.resource.data.expiresAt is timestamp;
+
+        allow update: if isRoomParticipant(roomId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen', 'reaction'])
+          && request.resource.data.senderId == resource.data.senderId
+          && request.resource.data.text == resource.data.text
+          && (
+            request.resource.data.reaction == null
+            || (
+              request.resource.data.reaction is string
+              && request.resource.data.reaction.size() <= 8
+            )
+          );
+
+        allow delete: if false;
+      }
+    }
+  }
+}

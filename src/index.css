@@ -4,10 +4,10 @@
   /* GRC Official Palette */
   --color-grc-red: #da291c;
   --color-grc-blue: #004a99;
-  
+
   /* Semantic Colors for Dark Mode Transitions */
-  --color-app-bg: white;
-  --color-card-bg: white;
+  --color-app-bg: #ffffff;
+  --color-card-bg: #ffffff;
   --color-main-text: #1e293b;
 }
 
@@ -17,52 +17,82 @@
 .dark {
   --color-app-bg: #0f172a;
   --color-card-bg: #1e293b;
-  --color-main-text: #f1f5f9;
+  --color-main-text: #f8fafc;
 }
 
 @layer base {
   body {
     @apply bg-[var(--color-app-bg)] text-[var(--color-main-text)] transition-colors duration-300;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-grc-red);
+    outline-offset: 2px;
   }
 }
 
-/* Smooth scrolling for chat messages */
 * {
   scrollbar-width: thin;
   scrollbar-color: #da291c transparent;
 }
 
-:root {
-  --color-app-bg: #ffffff; /* Light mode background */
-  --color-card-bg: #ffffff;
-  --color-main-text: #1e293b;
+/* The animation classes used across the app. */
+@keyframes grc-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.dark {
-  --color-app-bg: #0f172a; /* Deep dark background to match your screenshot */
-  --color-card-bg: #1e293b; /* Slightly lighter for the chat box */
-  --color-main-text: #f8fafc;
+@keyframes grc-pop-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-body {
-  background-color: var(--color-app-bg);
-  transition: background-color 0.3s ease;
-} 
-
-/* Update your chat messages container class */
-.messages-container {
-  display: flex;
-  flex-direction: column;
-  /* This pushes the content to the bottom */
-  justify-content: flex-end; 
-  height: 100%;
-  overflow-y: auto;
+@keyframes grc-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Ensure the individual bubbles don't stretch */
-.message-wrapper {
-  display: flex;
-  width: 100%;
-  margin-bottom: 10px;
+.animate-fade-in {
+  animation: grc-fade-in 0.2s ease-out both;
+}
+
+.animate-pop-in {
+  animation: grc-pop-in 0.2s ease-out both;
+}
+
+.animate-slide-up {
+  animation: grc-slide-up 0.25s ease-out both;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

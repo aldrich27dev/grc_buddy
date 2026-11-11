@@ -2,9 +2,40 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/Gemini_Generated_Image_122rlx122rlx122r.png" />
+    <link rel="icon" type="image/png" href="/Gemini_Generated_Image_122rlx122rlx122r.png" />
+    <link rel="apple-touch-icon" href="/Gemini_Generated_Image_122rlx122rlx122r.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GRC | Buddy</title>
+    <meta name="theme-color" content="#da291c" />
+    <meta
+      name="description"
+      content="GRCBuddy is a real-time student matching and chat platform for Global Reciprocal Colleges. Find a study buddy based on shared interests."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="GRCBuddy | Find Your Study Buddy" />
+    <meta
+      property="og:description"
+      content="Get matched with fellow GRC students who share your interests, then chat in a private room."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="GRCBuddy | Find Your Study Buddy" />
+    <meta
+      name="twitter:description"
+      content="Get matched with fellow GRC students who share your interests, then chat in a private room."
+    />
+    <title>GRCBuddy | Find Your Study Buddy</title>
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('grc_theme');
+          var dark = saved
+            ? saved === 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (error) {
+          // The app will still apply the theme after React loads.
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

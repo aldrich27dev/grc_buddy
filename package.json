@@ -2,12 +2,18 @@
   "homepage": "https://aldrich27dev.github.io/grc_buddy",
   "name": "grc_buddy",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
+    "deploy:rules": "npx firebase-tools deploy --only firestore:rules,firestore:indexes",
     "dev": "vite",
+    "dev:emulator": "vite --mode emulator",
+    "emulators": "npx firebase-tools emulators:start --project grcchatapp",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
