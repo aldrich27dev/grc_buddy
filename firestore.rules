@@ -171,12 +171,14 @@ service cloud.firestore {
         || resource.data.senderId == request.auth.uid
       );
 
-      // List rules are query-based in Firestore, so the banner query must
-      // constrain every field used here. The app queries active shouts with
-      // both `status == 'active'` and `endsAt > now`.
+      // List rules are query-based in Firestore. Only the status equality can
+      // be proven from the banner query, so that is the only document field
+      // checked here. The app also filters `endsAt > now` in the query, but
+      // Firestore rejects time comparisons in list rules. Active banners are
+      // public anyway; pending requests stay private because their status is
+      // not `active`.
       allow list: if signedIn()
-        && resource.data.status == 'active'
-        && resource.data.endsAt > request.time;
+        && resource.data.status == 'active';
 
       // Students can only submit pending requests. Approval happens manually
       // in the Firebase Console, which bypasses these rules.
