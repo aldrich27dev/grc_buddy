@@ -481,12 +481,19 @@ export default function ShoutoutModal({ open, onClose, userProfile }) {
                   <p className={`text-[9px] font-black uppercase tracking-widest ${
                     queueIsBusy ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'
                   }`}>
-                    {queueIsBusy ? 'That time is already taken' : 'This time is available'}
+                    {queueIsBusy ? 'Your shoutout is queued' : 'This time is available'}
                   </p>
                   <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                    {queueIsBusy
-                      ? `Another shoutout is running or scheduled. Yours will be shown from ${formatTime(nextAvailableAt)} to ${formatTime(nextAvailableEnd)}.`
-                      : 'Your banner can start as soon as your payment is approved.'}
+                    {queueIsBusy ? (
+                      <>
+                        Another shoutout is using the banner now. Your shoutout
+                        will be posted on{' '}
+                        <span className="font-black text-amber-700 dark:text-amber-300">
+                          {formatTime(nextAvailableAt)}
+                        </span>{' '}
+                        and will stay up until {formatTime(nextAvailableEnd)}.
+                      </>
+                    ) : 'Your banner can start as soon as your payment is approved.'}
                   </p>
                 </div>
               </div>

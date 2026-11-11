@@ -36,6 +36,11 @@ service cloud.firestore {
         && isParticipant(get(/databases/$(database)/documents/rooms/$(roomId)).data);
     }
 
+    function isShoutoutAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
     function validShoutoutDuration(durationId, durationLabel, durationMs, price) {
       return (
         (durationId == '1h' && durationLabel == '1 hour' && durationMs == 3600000 && price == 25)
@@ -169,6 +174,7 @@ service cloud.firestore {
           && resource.data.endsAt > request.time
         )
         || resource.data.senderId == request.auth.uid
+        || isShoutoutAdmin()
       );
 
       // List rules are query-based in Firestore. Only the status equality can
@@ -176,12 +182,12 @@ service cloud.firestore {
       // checked here. The app also filters `endsAt > now` in the query, but
       // Firestore rejects time comparisons in list rules. Active banners are
       // public anyway; pending requests stay private because their status is
-      // not `active`.
-      allow list: if signedIn()
-        && resource.data.status == 'active';
+      // not `active`. Authorized devices can list pending requests too.
+      allow list: if (signedIn() && resource.data.status == 'active')
+        || isShoutoutAdmin();
 
-      // Students can only submit pending requests. Approval happens manually
-      // in the Firebase Console, which bypasses these rules.
+      // Students can only submit pending requests. Authorized admin devices
+      // approve or reject them from the hidden #admin page.
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly([
           'senderId', 'senderName', 'text', 'durationId', 'durationLabel',
@@ -214,8 +220,16 @@ service cloud.firestore {
         && request.resource.data.endsAt == null
         && request.resource.data.approvedAt == null;
 
-      allow update: if false;
+      allow update: if isShoutoutAdmin();
       allow delete: if false;
+    }
+
+    match /admins/{adminId} {
+      // Admin documents are created from the Firebase Console. A device may
+      // only check whether its own ID is authorized; clients cannot list,
+      // create, or modify admin documents.
+      allow get: if signedIn() && request.auth.uid == adminId;
+      allow list, create, update, delete: if false;
     }
   }
 }

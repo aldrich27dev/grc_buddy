@@ -47,12 +47,26 @@ The payment contact is **@hotdogsasopas** on Telegram. To change it, edit `DEFAU
    - If a shoutout is already running or scheduled, it shows the next free start time and tells the student their banner will be queued there.
 3. The app saves a `pending` document in the `shoutouts` collection with `requestedStartAt` and `requestedEndAt`.
 4. The student opens Telegram with a prefilled message containing the request ID, duration, price, banner text, and requested slot, then sends the payment.
-5. The owner verifies the payment and approves the request in the Firebase Console, using the requested slot.
+5. The owner verifies the payment on Telegram, then approves the request from the hidden admin page (or the Firebase Console as a fallback). Approval automatically places the banner after any active or scheduled banner, so only one shows at a time.
 6. Only one shoutout shows at a time. The banner appears automatically and disappears when `endsAt` passes. No Cloud Function or TTL policy is needed.
 
-### Approving a request manually
+### Approving requests from a phone
 
-Approval is intentionally manual because automatic payment verification needs a server, which is not available on the free Spark plan.
+Approval works without a password or a laptop. Each device is authorized once by adding its Firebase UID to the `admins` collection.
+
+1. On your phone, open `https://aldrich27dev.github.io/grc_buddy/#admin`.
+2. The first visit shows **Authorize this device** with a **Device ID**.
+3. In **Firebase Console → Firestore Database**, create a collection named `admins` and use that Device ID as the document ID. Any label fields are fine.
+4. Tap **I added it — retry** on the phone. The dashboard opens and shows pending requests.
+5. Match the request with the Telegram payment message, confirm the payment, then tap **Approve & post**. The page computes `startsAt`/`endsAt` from the queue, so you do not need to edit timestamps.
+6. Use **Reject** for unpaid or invalid requests, and **Stop** to end a live banner early.
+7. To revoke a device, delete its document from the `admins` collection.
+
+The admin route is not linked from the student UI and is marked `noindex`. It only grants shoutout approval; students still have no sign-in or sign-up screen.
+
+### Approving a request in the Firebase Console
+
+The console remains a fallback if the admin page is unavailable.
 
 1. Open **Firebase Console → Firestore Database → shoutouts**.
 2. Open the pending request and match its **Request ID** with the Telegram payment message.
@@ -184,14 +198,15 @@ A separate CI workflow runs lint and build on pull requests.
 - Messages can only be read/created by participants, with a 1,000-character limit enforced in the rules.
 - A user cannot claim a room that is already full, expired, or their own.
 - Room and message updates are restricted to specific fields, so clients cannot inject extra data.
-- Students can only create **pending** shoutout requests. Clients cannot approve, extend, or delete a shoutout; approval happens in the Firebase Console.
-- Pending shoutout requests are readable only by the student who submitted them. Active banners are readable by signed-in students until `endsAt`.
+- Students can only create **pending** shoutout requests. Only authorized admin devices or the Firebase Console can approve, extend, reject, or stop a shoutout.
+- Pending shoutout requests are readable only by the student who submitted them and by authorized admin devices. Active banners are readable by signed-in students until `endsAt`.
+- Admin devices are listed as `admins/{uid}` documents created manually in the Firebase Console. A device can only check its own document; clients cannot list, create, or modify admin documents.
 - Each browser keeps its own anonymous identity; clearing site data starts a new identity.
 
 ## Current limitations
 
 - Moderation/reporting is not implemented yet.
-- Shoutout payments are verified manually in Telegram and approved manually in the Firebase Console. Automatic payment verification would require a server or payment webhook outside the free Spark plan.
+- Shoutout payments are verified manually in Telegram and approved from the hidden admin page. Automatic payment verification would require a server or payment webhook outside the free Spark plan.
 - Expired shoutout documents stay in Firestore until deleted manually. The banner query excludes them, so they do not appear or cost reads.
 - On the Spark plan, expired waiting rooms are filtered out of matching, but expired rooms and messages are not automatically deleted. Delete old data manually or enable TTL after upgrading to Blaze.
 - Matching scans at most 25 active waiting rooms per search, which is fine for a college-sized audience. Server-side matching can replace it if the queue grows much larger.

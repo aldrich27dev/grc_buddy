@@ -47,7 +47,7 @@ export default function ShoutoutBanner({ variant = 'lobby', onBook }) {
 
   return (
     <div className={compact ? 'shrink-0 px-3 pb-2' : 'w-full mb-6'}>
-      <div className="flex items-center gap-3 rounded-2xl border border-red-100 dark:border-red-900/30 bg-gradient-to-r from-red-50 via-white to-white dark:from-red-900/20 dark:via-slate-800 dark:to-slate-800 px-3 py-2.5 md:px-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-red-100 dark:border-red-900/30 bg-gradient-to-r from-red-50 via-white to-white dark:from-red-900/20 dark:via-slate-800 dark:to-slate-800 px-3 py-2.5 md:px-4 shadow-sm">
         <div className="w-8 h-8 rounded-xl bg-grc-red text-white flex items-center justify-center shrink-0 shadow-md shadow-red-200 dark:shadow-none">
           <Megaphone size={15} strokeWidth={2.5} />
         </div>
@@ -61,19 +61,19 @@ export default function ShoutoutBanner({ variant = 'lobby', onBook }) {
 
           {current ? (
             <div key={current.id} className="animate-fade-in">
-              <p className="text-[11px] md:text-xs font-bold text-[var(--color-main-text)] leading-snug truncate">
+              <p className="text-[11px] md:text-xs font-bold text-[var(--color-main-text)] leading-snug whitespace-normal break-words">
                 {current.text}
               </p>
-              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider truncate">
+              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider break-words">
                 — {current.senderName || 'GRC Student'}
               </p>
             </div>
           ) : (
             <div>
-              <p className="text-[11px] md:text-xs font-bold text-[var(--color-main-text)] leading-snug truncate">
+              <p className="text-[11px] md:text-xs font-bold text-[var(--color-main-text)] leading-snug whitespace-normal break-words">
                 Your shoutout could be here
               </p>
-              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider truncate">
+              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider break-words">
                 From ₱25 • lobby and chat banner
               </p>
             </div>
@@ -83,7 +83,7 @@ export default function ShoutoutBanner({ variant = 'lobby', onBook }) {
         <button
           type="button"
           onClick={onBook}
-          className="shrink-0 flex items-center gap-1 rounded-xl bg-grc-red text-white px-3 py-2 text-[9px] font-black uppercase tracking-widest hover:brightness-95 active:scale-95 transition-all shadow-md shadow-red-200 dark:shadow-none"
+          className="order-last w-full sm:order-none sm:w-auto flex items-center justify-center gap-1 rounded-xl bg-grc-red text-white px-3 py-2 text-[9px] font-black uppercase tracking-widest hover:brightness-95 active:scale-95 transition-all shadow-md shadow-red-200 dark:shadow-none shrink-0"
         >
           {current ? 'Book yours' : 'Book now'}
           <ChevronRight size={12} strokeWidth={3} />
