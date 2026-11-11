@@ -109,7 +109,7 @@ export default function Lobby({ onMatchStart, userProfile, onLogout, isDark, set
             GRC<span className="text-grc-red">Buddy</span>
           </h1>
           <p className="text-slate-500 text-[10px] mt-2 font-black uppercase tracking-[0.2em]">
-            {userProfile ? `Welcome back, ${userProfile.name} !` : 'Find your GRCBuddy now!'}
+            {userProfile ? `Welcome back, ${userProfile.name} • ${userProfile.year}` : 'Find your GRCBuddy now!'}
           </p>
         </div>
 

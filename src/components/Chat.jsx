@@ -29,7 +29,7 @@ export default function Chat({ roomId, userProfile, userRole, onExit }) {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [room, setRoom] = useState(null);
-  const [partner, setPartner] = useState({ name: 'Waiting...', course: '', gender: '', location: '', typing: false });
+  const [partner, setPartner] = useState({ name: 'Waiting...', course: '', year: '', gender: '', location: '', typing: false });
   const [activeMessageId, setActiveMessageId] = useState(null);
   const [partnerLeft, setPartnerLeft] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
@@ -141,6 +141,7 @@ export default function Chat({ roomId, userProfile, userRole, onExit }) {
         setPartner({
           name: partnerData.name || 'GRC Student',
           course: partnerData.course || 'GRC Student',
+          year: partnerData.year || '',
           gender: partnerData.gender || '',
           location: partnerData.location || '',
           typing: role === 'user1' ? !!data.typing2 : !!data.typing1,
@@ -360,6 +361,11 @@ export default function Chat({ roomId, userProfile, userRole, onExit }) {
             <div className="flex flex-col min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-bold text-[var(--color-main-text)] leading-none truncate">{partner?.name}</p>
+                {partner?.year && (
+                  <span className="inline-block shrink-0 text-[8px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-tighter bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    {partner.year}
+                  </span>
+                )}
                 {partner?.gender && (
                   <span className={`inline-block shrink-0 text-[8px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-tighter ${partner.gender === 'Male' ? 'bg-blue-50 text-blue-500 dark:bg-blue-900/20' : 'bg-pink-50 text-pink-500 dark:bg-pink-900/20'}`}>
                     {partner.gender}
