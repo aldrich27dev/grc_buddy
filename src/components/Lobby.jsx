@@ -3,6 +3,8 @@ import { Heart, ChevronRight, UserCircle2, Sparkles, Mars, Venus, MapPin, Sun, M
 import toast from 'react-hot-toast';
 import { auth } from '../firebase/auth';
 import { findOrCreateMatch } from '../services/rooms';
+import ShoutoutBanner from './ShoutoutBanner';
+import { SHOUTOUTS_ENABLED } from '../constants/shoutouts';
 import {
   COURSES,
   YEARS,
@@ -13,7 +15,7 @@ import {
   MAX_NAME_LENGTH,
 } from '../constants/catalog';
 
-export default function Lobby({ onMatchStart, userProfile, onLogout, isDark, setIsDark }) {
+export default function Lobby({ onMatchStart, userProfile, onLogout, isDark, setIsDark, onOpenShoutout }) {
   const [formData, setFormData] = useState({
     name: userProfile?.name || '',
     year: userProfile?.year || '',
@@ -112,6 +114,10 @@ export default function Lobby({ onMatchStart, userProfile, onLogout, isDark, set
             {userProfile ? `Welcome back, ${userProfile.name} • ${userProfile.year}` : 'Find your GRCBuddy now!'}
           </p>
         </div>
+
+        {SHOUTOUTS_ENABLED && (
+          <ShoutoutBanner onBook={onOpenShoutout} />
+        )}
 
         <div className="w-full space-y-4">
           {!userProfile && (

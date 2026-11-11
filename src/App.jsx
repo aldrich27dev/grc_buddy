@@ -6,11 +6,13 @@ import Lobby from './components/Lobby';
 import Matching from './components/Matching';
 import Chat from './components/Chat';
 import Navbar from './components/Navbar';
+import ShoutoutModal from './components/ShoutoutModal';
 import { auth, ensureSignedIn } from './firebase/auth';
 import { getRole, getRoom, leaveRoom } from './services/rooms';
 import useOnlineStatus from './hooks/useOnlineStatus';
 import { readJSON, writeJSON, removeKey } from './lib/storage';
 import { MIN_INTERESTS } from './constants/catalog';
+import { SHOUTOUTS_ENABLED } from './constants/shoutouts';
 
 const THEME_KEY = 'grc_theme';
 const AGREED_KEY = 'grc_agreed';
@@ -67,8 +69,11 @@ export default function App() {
   const [authUser, setAuthUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [showShoutoutModal, setShowShoutoutModal] = useState(false);
 
   const online = useOnlineStatus();
+  const openShoutoutModal = useCallback(() => setShowShoutoutModal(true), []);
+  const closeShoutoutModal = useCallback(() => setShowShoutoutModal(false), []);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
@@ -257,6 +262,15 @@ export default function App() {
 
       <Toaster position="top-center" />
 
+      {SHOUTOUTS_ENABLED && (
+        <ShoutoutModal
+          key={showShoutoutModal ? 'shoutout-open' : 'shoutout-closed'}
+          open={showShoutoutModal}
+          onClose={closeShoutoutModal}
+          userProfile={userProfile}
+        />
+      )}
+
       {!online && (
         <div
           role="status"
@@ -344,6 +358,7 @@ export default function App() {
             onLogout={clearProfile}
             isDark={isDark}
             setIsDark={setIsDark}
+            onOpenShoutout={openShoutoutModal}
           />
         )}
 
@@ -362,6 +377,7 @@ export default function App() {
             userProfile={userProfile}
             userRole={session.role}
             onExit={handleExitChat}
+            onOpenShoutout={openShoutoutModal}
           />
         )}
       </main>

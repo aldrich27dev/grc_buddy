@@ -36,6 +36,15 @@ service cloud.firestore {
         && isParticipant(get(/databases/$(database)/documents/rooms/$(roomId)).data);
     }
 
+    function validShoutoutDuration(durationId, durationLabel, durationMs, price) {
+      return (
+        (durationId == '1h' && durationLabel == '1 hour' && durationMs == 3600000 && price == 25)
+        || (durationId == '3h' && durationLabel == '3 hours' && durationMs == 10800000 && price == 60)
+        || (durationId == '6h' && durationLabel == '6 hours' && durationMs == 21600000 && price == 80)
+        || (durationId == '12h' && durationLabel == '12 hours' && durationMs == 43200000 && price == 140)
+      );
+    }
+
     match /rooms/{roomId} {
       // Waiting rooms are visible to signed-in students so they can be matched.
       // Once a room is full, only its two participants can read it.
@@ -145,6 +154,66 @@ service cloud.firestore {
 
         allow delete: if false;
       }
+    }
+
+    match /shoutouts/{shoutoutId} {
+      // Active banners are public to signed-in students. Pending requests are
+      // private to the student who submitted them. A missing document is
+      // allowed so a normal "not found" result is returned instead of a rules
+      // evaluation error.
+      allow get: if signedIn() && (
+        !exists(/databases/$(database)/documents/shoutouts/$(shoutoutId))
+        || (
+          resource.data.status == 'active'
+          && resource.data.endsAt is timestamp
+          && resource.data.endsAt > request.time
+        )
+        || resource.data.senderId == request.auth.uid
+      );
+
+      // List rules are query-based in Firestore, so the banner query must
+      // constrain every field used here. The app queries active shouts with
+      // both `status == 'active'` and `endsAt > now`.
+      allow list: if signedIn()
+        && resource.data.status == 'active'
+        && resource.data.endsAt > request.time;
+
+      // Students can only submit pending requests. Approval happens manually
+      // in the Firebase Console, which bypasses these rules.
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'senderId', 'senderName', 'text', 'durationId', 'durationLabel',
+          'durationMs', 'price', 'status', 'createdAt', 'requestedStartAt',
+          'requestedEndAt', 'startsAt', 'endsAt', 'approvedAt'
+        ])
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.senderName is string
+        && request.resource.data.senderName.size() > 0
+        && request.resource.data.senderName.size() <= 24
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 3
+        && request.resource.data.text.size() <= 120
+        && request.resource.data.durationId is string
+        && request.resource.data.durationLabel is string
+        && request.resource.data.durationMs is int
+        && request.resource.data.price is int
+        && validShoutoutDuration(
+          request.resource.data.durationId,
+          request.resource.data.durationLabel,
+          request.resource.data.durationMs,
+          request.resource.data.price
+        )
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.requestedStartAt is timestamp
+        && request.resource.data.requestedEndAt is timestamp
+        && request.resource.data.requestedEndAt > request.resource.data.requestedStartAt
+        && request.resource.data.startsAt == null
+        && request.resource.data.endsAt == null
+        && request.resource.data.approvedAt == null;
+
+      allow update: if false;
+      allow delete: if false;
     }
   }
 }

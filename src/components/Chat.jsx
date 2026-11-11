@@ -22,10 +22,12 @@ import {
   setMessageReaction,
 } from '../services/rooms';
 import { MAX_MESSAGE_LENGTH } from '../constants/catalog';
+import ShoutoutBanner from './ShoutoutBanner';
+import { SHOUTOUTS_ENABLED } from '../constants/shoutouts';
 
 const MESSAGE_PAGE_SIZE = 30;
 
-export default function Chat({ roomId, userProfile, userRole, onExit }) {
+export default function Chat({ roomId, userProfile, userRole, onExit, onOpenShoutout }) {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [room, setRoom] = useState(null);
@@ -389,6 +391,12 @@ export default function Chat({ roomId, userProfile, userRole, onExit }) {
         {connectionError && (
           <div role="status" className="shrink-0 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 text-[10px] font-bold uppercase tracking-widest text-center py-2 px-4 border-b border-amber-100 dark:border-amber-900/30">
             Connection lost — trying to reconnect...
+          </div>
+        )}
+
+        {SHOUTOUTS_ENABLED && (
+          <div className="pt-2">
+            <ShoutoutBanner variant="chat" onBook={onOpenShoutout} />
           </div>
         )}
 
